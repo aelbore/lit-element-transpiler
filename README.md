@@ -1,2 +1,2 @@
 # lit-element-transpiler
-LitElement code transpiler (inline import css and scss file, transpiler decorators to native javascript)
+LitElement code transpiler (import css and scss file and inline to your component also transpile decorators to native javascript)
