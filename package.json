@@ -1,0 +1,37 @@
+{
+  "name": "lit-element-transpiler",
+  "version": "0.0.1",
+  "description": "LitElement code transpiler (import css and scss file and inline to your component also transpile decorators to native javascript)",
+  "main": "lit-element-transpiler.js",
+  "scripts": {
+    "build": "ts-node tools/build.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aelbore/lit-element-transpiler.git"
+  },
+  "keywords": [
+    "typescript",
+    "transpiler",
+    "styles",
+    "css",
+    "sass",
+    "scss",
+    "lit-html",
+    "lit-element"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aelbore/lit-element-transpiler/issues"
+  },
+  "homepage": "https://github.com/aelbore/lit-element-transpiler#readme",
+  "dependencies": {
+    "typescript": "^3.4.3"
+  },
+  "devDependencies": {
+    "aria-tools": "0.0.4"
+  },
+  "typings": "lit-element-transpiler.d.ts"
+}
