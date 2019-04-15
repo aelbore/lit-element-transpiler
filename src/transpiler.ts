@@ -4,9 +4,9 @@ import { inlineStyles } from './inline-css-transformer'
 import { cssImportDeclation } from './css-import-declaration'
 import { customElementDefine } from './element-define'
 
-export function transpiler(filePath: string, code: string, transformers: any[]) {
+export function transpiler(filePath: string, code: string) {
   const { outputText, sourceMapText } = ts.transpileModule(code, {
-    compilerOptions: {
+    compilerOptions: { 
       module: ts.ModuleKind.ES2015, 
       target: ts.ScriptTarget.ES2018,
       skipLibCheck: true,
@@ -18,7 +18,6 @@ export function transpiler(filePath: string, code: string, transformers: any[]) 
       before: [
         customElementDefine(),
         inlineStyles(filePath),
-        ...transformers,
         cssImportDeclation()
       ]
     }
