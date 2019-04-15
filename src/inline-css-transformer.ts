@@ -76,7 +76,7 @@ function getStatements(statements, styles) {
   }) 
 }
 
-function buildSass(srcFile: string, sass: any) {
+function buildSass(srcFile, sass) {
   const options = {
     data: fs.readFileSync(srcFile, 'utf8'),
     file: srcFile,
@@ -108,7 +108,7 @@ function getStyles(tsFilePath, statements) {
   return []
 }
 
-const removeImportStyles = (statements) => {
+function removeImportStyles(statements) {
   return statements
     .filter(statement => {
       return !(ts.isImportDeclaration(statement) 
@@ -116,7 +116,7 @@ const removeImportStyles = (statements) => {
     })
 }
 
-export function inlineStyles(tsFilePath: string) {
+export function inlineStyles(tsFilePath) {
   return context => {
     const visitor = (node) => {
       if (Array.isArray(node.statements)) {

@@ -3,9 +3,11 @@
   "version": "0.0.1",
   "description": "LitElement code transpiler (import css and scss file and inline to your component also transpile decorators to native javascript)",
   "main": "lit-element-transpiler.js",
+  "typings": "lit-element-transpiler.d.ts",
   "scripts": {
     "build": "ts-node tools/build.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build.demo": "ts-node tools/build.demo.ts",
+    "test": "TS_NODE_COMPILER_OPTIONS='{ \"lib\": [ \"es2015\" ] }' mocha --require ts-node/register/type-check tests/*.ts"
   },
   "repository": {
     "type": "git",
@@ -31,7 +33,9 @@
     "typescript": "^3.4.3"
   },
   "devDependencies": {
-    "aria-tools": "0.0.4"
-  },
-  "typings": "lit-element-transpiler.d.ts"
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.6",
+    "aria-tools": "0.0.4",
+    "lit-element": "^2.1.0"
+  }
 }
