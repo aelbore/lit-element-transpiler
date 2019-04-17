@@ -7,6 +7,7 @@ import { clean } from 'aria-fs'
 
 const writeFile = util.promisify(fs.writeFile)
 const rename = util.promisify(fs.rename);
+const copyFile = util.promisify(fs.copyFile)
 
 const typescript2 = require('rollup-plugin-typescript2');
 const resolve = require('rollup-plugin-node-resolve')
@@ -24,6 +25,10 @@ async function copyPackageFile() {
   delete pkg.scripts;
   delete pkg.devDependencies;
   return writeFile(`dist/${FILE_NAME}`, JSON.stringify(pkg, null, 2))
+}
+
+async function copyReadmeFile() {
+  return copyFile(path.resolve('README.md'), path.resolve('dist/README.md'))
 }
 
 async function renameTypings() {
@@ -71,4 +76,4 @@ const rollupConfig = {
 
 clean('dist')
   .then(() => rollupBuild(rollupConfig))
-  .then(() => Promise.all([ copyPackageFile(), renameTypings() ]))
+  .then(() => Promise.all([ copyPackageFile(), renameTypings(), copyReadmeFile() ]))
