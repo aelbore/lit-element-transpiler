@@ -57,7 +57,7 @@ function createStaticGetProperties(propertyMembers) {
 function getStaticProperties(members) {
   return members.find(member => {
     return ts.isGetAccessor(member) 
-      && member.name.getText().includes('properties')
+      && member.name['text'].includes('properties')
   })
 }
 
@@ -99,8 +99,7 @@ function updateNodeMembers(members) {
 
     //// remove property decorators
     members = members.filter(member => {
-      const text = member.name.text
-      return !propertyDeclarations.includes(text)
+      return !propertyDeclarations.includes(member.name.text)
     })
 
     /// remove static get properties
