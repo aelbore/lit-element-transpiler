@@ -53,8 +53,11 @@ function updateGetAccessorStaticStyle(members, node, css) {
 }
 
 function createStaticGetAccessor(statement, styles) {
+  
   const styleStaticGet = statement.members.find(member => {
-    return ts.isGetAccessor(member) && member.getText().includes('styles')
+    return ts.isGetAccessor(member) 
+      && member.name.hasOwnProperty('text')
+      && member.name.getText().includes('styles')
   })
 
   if (styleStaticGet) {
