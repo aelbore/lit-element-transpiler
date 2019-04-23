@@ -36,6 +36,7 @@
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.6",
     "aria-tools": "0.0.4",
-    "lit-element": "^2.1.0"
+    "lit-element": "^2.1.0",
+    "node-sass": "^4.11.0"
   }
 }
