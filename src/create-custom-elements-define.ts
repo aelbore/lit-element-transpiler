@@ -14,11 +14,13 @@ function removeCustomElementDecorator(statements) {
   return statements.map(statement => {
     if (ts.isClassDeclaration(statement)) {
       /// remove @customElement decorator
+      /// TODO: set the decorators to undefined
       /// @ts-ignore
-      statement.decorators = statement.decorators.filter(decorator => {
-        /// @ts-ignore
-        return !(decorator.expression.expression.getText().includes('customElement'))
-      })
+      // statement.decorators = statement.decorators.filter(decorator => {
+      //   /// @ts-ignore
+      //   return !(decorator.expression.expression.getText().includes('customElement'))
+      // })
+      statement.decorators = undefined
     }
     return statement
   })
