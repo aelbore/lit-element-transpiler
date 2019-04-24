@@ -1,6 +1,6 @@
 {
   "name": "lit-element-transpiler",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "LitElement code transpiler (import css and scss file and inline to your component also transpile decorators to native javascript)",
   "main": "lit-element-transpiler.js",
   "typings": "lit-element-transpiler.d.ts",
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/aelbore/lit-element-transpiler#readme",
   "dependencies": {
-    "typescript": "^3.4.3"
+    "typescript": "^3.4.5"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
