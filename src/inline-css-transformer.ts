@@ -119,10 +119,32 @@ function removeImportStyles(statements) {
     })
 }
 
+function findAllImportStyles(statements) {
+  return statements.filter(statement => {
+    return ts.isImportDeclaration(statement)
+      && (statement.moduleSpecifier.getText().includes('.css')
+            || statement.moduleSpecifier.getText().includes('.scss'))
+  })
+}
+
+function removeAllImportStyles(importStyles, statements) {
+  const importStyleNames = importStyles.map(style => style.moduleSpecifier.getText())
+  return statements.filter(statement => {
+    return !(importStyleNames.includes(statement.moduleSpecifier.getText))
+  })
+}
+
 export function inlineStyles(tsFilePath) {
   return context => {
     const visitor = (node) => {
       if (Array.isArray(node.statements)) {
+
+        const importStyles = findAllImportStyles(node.statements)
+        if (importStyles) {
+          const statements = removeAllImportStyles(importStyles, node.statements)
+
+        }
+
         node.statements = removeImportStyles(
           getStatements(node.statements, getStyles(tsFilePath, node.statements))
         )

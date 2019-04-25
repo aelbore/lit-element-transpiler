@@ -1,8 +1,9 @@
 import * as ts from 'typescript'
 
-import { inlineStyles } from './inline-css-transformer'
+import { inlineImportStyles } from './inline-import-styles'
 import { cssImportDeclation } from './css-import-declaration'
-import { customElementDefine } from './element-define'
+import { inlinePropertyDecorators } from './create-static-get-properties'
+import { customElements } from './create-custom-elements-define'
 
 export function transpiler(filePath: string, code: string) {
   const { outputText, sourceMapText } = ts.transpileModule(code, {
@@ -16,9 +17,10 @@ export function transpiler(filePath: string, code: string) {
     },
     transformers: { 
       before: [
-        customElementDefine(),
-        inlineStyles(filePath),
-        cssImportDeclation()
+        customElements(),
+        inlineImportStyles(filePath),
+        cssImportDeclation(),
+        inlinePropertyDecorators()
       ]
     }
   }); 
