@@ -2,14 +2,10 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as util from 'util'
 
-import { transpile } from '../src/transpiler'
 import { mkdirp, clean } from 'aria-fs'
-import { propsDecorators } from '../src/props-decorators'
 
 import { expect } from 'chai'
-import { customElementDefine } from '../src/element-define';
-import { inlineStyles } from '../src/inline-css-transformer';
-import { cssImportDeclation } from '../src/css-import-declaration'
+import { transpiler } from '../src/transpiler'
 
 const readFile = util.promisify(fs.readFile)
 
@@ -30,17 +26,8 @@ describe('PropsDecorators', () => {
   })
 
   it('should transform to static get properties', async () => { 
-    const result = transpile(SOURCE_FILE, content, {
-      transformers: {
-        before: [ 
-          propsDecorators(),
-          customElementDefine(),
-          inlineStyles(SOURCE_FILE),
-          cssImportDeclation()
-        ]
-      }
-    })
-
+    const result = transpiler(SOURCE_FILE, content)
+    
     expect(result.code).contains('name: { type: String }')
     expect(result.code).contains('message: { type: String }')
     expect(result.code).contains('static get properties() {')

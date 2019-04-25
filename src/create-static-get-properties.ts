@@ -84,7 +84,7 @@ function updateCreateProperties(members, node) {
   return null
 }
 
-export function updateNodeMembers(members) {
+function updateNodeMembers(members) {
   /// get the static get properties if exist
   const nodeProperties = getStaticProperties(members)  
 
@@ -99,13 +99,14 @@ export function updateNodeMembers(members) {
 
     //// remove property decorators
     members = members.filter(member => {
-      return !(propertyDeclarations.includes(member.name.getText()))
+      const text = member.name.text
+      return !propertyDeclarations.includes(text)
     })
 
     /// remove static get properties
     if (nodeProperties) {
       members = members.filter(member => {
-        const text = member.name.getText()
+        const text = member.name.text
         return !(nodeProperties.name.getText().includes(text))
       })
     }
@@ -114,4 +115,17 @@ export function updateNodeMembers(members) {
   }
 
   return members
+}
+
+export function inlinePropertyDecorators() {
+  return context => {
+    const visitor = (node) => {
+      /// add condition to make sure class extends 
+      if (ts.isClassDeclaration(node)) {
+        node.members = updateNodeMembers(node.members)
+      }
+      return ts.visitEachChild(node, (child) => visitor(child), context)
+    }
+    return visitor
+  }
 }
