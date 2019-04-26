@@ -107,7 +107,7 @@ function createOrUpdateStaticGetStyle(statements, sourceFilePath, importStyles) 
 
   function getStyles(importStyles) {
     return importStyles.map(statement => {
-      const cssRelativePath = statement.moduleSpecifier.getText().replace(/'/g, '')
+      const cssRelativePath = statement.moduleSpecifier.getText().replace(/'/g, '').replace(/"/g, '')
       const cssFullPath = path.resolve(path.dirname(sourceFilePath), cssRelativePath)
       return compileStyle(statement, cssFullPath)
     })
