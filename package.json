@@ -1,6 +1,6 @@
 {
   "name": "lit-element-transpiler",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "LitElement code transpiler (import css and scss file and inline to your component also transpile decorators to native javascript)",
   "main": "lit-element-transpiler.js",
   "typings": "lit-element-transpiler.d.ts",
