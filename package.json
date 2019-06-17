@@ -6,7 +6,7 @@
   "typings": "lit-element-transpiler.d.ts",
   "scripts": {
     "build": "ts-node build",
-    "test": "TS_NODE_COMPILER_OPTIONS='{ \"lib\": [ \"es2015\" ] }' mocha --require ts-node/register/type-check tests/*.ts"
+    "test": "aria test tests --mocha"
   },
   "repository": {
     "type": "git",
@@ -29,15 +29,15 @@
   },
   "homepage": "https://github.com/aelbore/lit-element-transpiler#readme",
   "dependencies": {
-    "typescript": "^3.4.5"
+    "typescript": "^3.5.2"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
-    "@types/mocha": "^5.2.6",
-    "aria-build": "0.0.1",
+    "@types/mocha": "^5.2.7",
+    "aria-build": "^0.0.6",
+    "aria-mocha": "^0.0.2",
     "chai": "^4.2.0",
-    "lit-element": "^2.1.0",
-    "mocha": "^6.1.4",
+    "lit-element": "^2.2.0",
     "node-sass": "^4.12.0"
   }
 }
