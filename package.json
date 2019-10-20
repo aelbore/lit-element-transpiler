@@ -1,12 +1,12 @@
 {
   "name": "lit-element-transpiler",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "LitElement code transpiler (import css and scss file and inline to your component also transpile decorators to native javascript)",
   "main": "lit-element-transpiler.js",
   "typings": "lit-element-transpiler.d.ts",
   "scripts": {
     "build": "aria-build -d --external typescript",
-    "test": "aria test tests --mocha"
+    "test": "aria-mocha --dir tests"
   },
   "repository": {
     "type": "git",
@@ -32,10 +32,10 @@
     "typescript": "^3.7.2"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.5",
+    "@types/chai": "^4.2.6",
     "@types/mocha": "^5.2.7",
-    "aria-build": "^0.0.14",
-    "aria-mocha": "^0.0.4",
+    "aria-build": "^0.0.18",
+    "aria-mocha": "^0.0.6",
     "chai": "^4.2.0",
     "lit-element": "^2.2.1",
     "node-sass": "^4.13.0"
