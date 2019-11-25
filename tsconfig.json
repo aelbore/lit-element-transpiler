@@ -4,6 +4,6 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowJs": true,
-    "rootDir": "src"
+    "outDir": "dist"
   }
 }

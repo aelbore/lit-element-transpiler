@@ -26,7 +26,7 @@ describe('Inline Styles', () => {
     await clean('dist')
   })
 
-  it('shoule have static get styles property', async () => { 
+  it('should have static get styles property', async () => { 
     const mapFilePath = OUTPUT_FILE + '.map'
 
     const result = transpiler(SOURCE_FILE, content)
@@ -37,7 +37,7 @@ describe('Inline Styles', () => {
     expect(fs.existsSync(OUTPUT_FILE)).to.true
     expect(fs.existsSync(mapFilePath)).to.true
     expect(fs.readFileSync(OUTPUT_FILE, 'utf-8'))
-      .includes('static get styles() { return css `h1 {\\n  color: red;\\n}`; }\n}')
+      .contains('static get styles() { return css `h1 {\r\n  color: red;\r\n}`; }\r\n}')
   })
 
 })
