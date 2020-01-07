@@ -99,8 +99,10 @@ function updateNodeMembers(members) {
 
     //// remove property decorators
     members = members.filter(member => {
-      return !propertyDeclarations.includes(member.name.text)
+      return member.name && !propertyDeclarations.includes(member.name.text)
     })
+
+    ///TODO: remove imports @property and customElement decorators
 
     /// remove static get properties
     if (nodeProperties) {
