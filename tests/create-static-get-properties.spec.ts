@@ -142,4 +142,8 @@ describe('create-static-get-properties', () => {
 
   })
 
+  xit('should remove property import clause element', () => {
+    /// TODO:
+  })
+
 })
