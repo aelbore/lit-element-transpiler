@@ -1,47 +1,23 @@
 import * as ts from 'typescript'
+import { transpile } from '../src/transpiler'
 
-function transpile(code: string, { transformers }) {
-  return ts.transpileModule(code, {
-    compilerOptions: { 
-      module: ts.ModuleKind.ES2015, 
-      target: ts.ScriptTarget.ES2018,
-      skipLibCheck: true,
-      skipDefaultLibCheck: true,
-      strictNullChecks: false,
-      sourceMap: false
-    },
-    transformers
-  }); 
+export interface GetAccessorFilter {
+  modifierKind?: ts.SyntaxKind;
+  name?: string;
 }
 
-export function getAccessors(code: string, filters?: {
-  kind?: ts.SyntaxKind,
-  name?: string
-}) {
-  const results = []
-  function getAllAccessors() {
+export interface ClassDeclarationFilter {
+  name?: string;
+  extendsClass?: string;
+}
+
+export function getClassDeclarations(code: string, filters?: ClassDeclarationFilter) {
+  const results: ts.ClassDeclaration[] = []
+  function classDeclarations() {
     return (context: ts.TransformationContext) => {
       const visitor = (node: ts.Node) => {
-        if (ts.isClassDeclaration(node) 
-          && Array.isArray(node.members) 
-          && node.members.length > 0) {
-            let getAccessors = node.members.filter(member => ts.isGetAccessor(member))
-            if (filters?.kind) {
-              getAccessors = getAccessors.filter(member => {
-                const modifier = member.modifiers.find(modifier => {
-                  return modifier.kind === filters.kind
-                }) 
-                return (modifier !== undefined)
-              })
-            }
-            if (filters?.name) {
-              getAccessors = getAccessors.filter(member => {
-                return member.name.getText().includes(filters.name)
-              })
-            }
-            getAccessors.forEach(get => {
-              results.push(get)
-            })
+        if (ts.isClassDeclaration(node)) {
+          results.push(node)
         }
         return ts.visitEachChild(node, (child) => visitor(child), context)
       }
@@ -49,13 +25,61 @@ export function getAccessors(code: string, filters?: {
     }
   }
 
- transpile(code, { 
+  transpile(code, {
     transformers: {
-      before: [ getAllAccessors() ]
+      before: [ classDeclarations() ]
     }
   })
 
-  return results.map(result => (result as ts.ClassElement))
+  let classes: ts.ClassDeclaration[] = [ ...results ]
+
+  if (filters?.name) {
+    classes = classes.filter(cls => cls.name.getText().includes(filters.name))
+  }
+
+  if (filters?.extendsClass) {
+    classes = classes.filter(cls => {
+      return Array.isArray(cls.heritageClauses) 
+        && cls.heritageClauses.find(heritageClause => {
+            return Array.isArray(heritageClause.types)
+              && heritageClause.types.find(type => {
+                  return ts.isExpressionWithTypeArguments(type) 
+                    && ts.isIdentifier(type.expression) 
+                    && type.expression.getText().includes(filters.extendsClass)
+                 })
+          }) 
+    })
+  }
+
+  return classes
+}
+
+export function getGetAccesors(classDeclarations: ts.ClassDeclaration[], filters?: GetAccessorFilter) {
+  let getAccessors: ts.ClassElement[] = []
+
+  classDeclarations.forEach(node => {
+    if (Array.isArray(node.members) && node.members.length > 0) {
+      const elements = node.members.filter(member => ts.isGetAccessor(member))
+      getAccessors = getAccessors.concat(elements)
+    }
+  })
+
+  if (filters?.modifierKind) {
+    getAccessors = getAccessors.filter(member => {
+      const modifier = member.modifiers.find(modifier => {
+        return modifier.kind === filters.modifierKind
+      }) 
+      return (modifier !== undefined)
+    })
+  }
+
+  if (filters?.name) {
+    getAccessors = getAccessors.filter(member => {
+      return member.name.getText().includes(filters.name)
+    })
+  }
+
+  return getAccessors
 }
 
 export function getImportDeclarations(code: string, filters?: {
