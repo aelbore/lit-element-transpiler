@@ -1,43 +1,45 @@
-import * as path from 'path'
+import * as mockfs from 'mock-fs'
 import * as fs from 'fs'
-import * as util from 'util'
+import * as ts from 'typescript'
 
-import { transpiler } from '../src/transpiler'
-import { mkdirp, clean } from 'aria-fs'
+import { expect } from 'aria-mocha'
+import { transpileFile } from '../src/transpiler'
 
-import { expect } from 'chai'
+describe('transpile', () => {
 
-const writeFile = util.promisify(fs.writeFile)
-const readFile = util.promisify(fs.readFile)
-
-const SOURCE_FILE = path.resolve('demo/inline-styles/hello-world.js')
-const OUTPUT_FILE = SOURCE_FILE.replace('demo', 'dist')
-const OUTPUT_BASE_DIR = path.dirname(OUTPUT_FILE)
-
-describe('Inline Styles', () => {
-  let content
-  
-  beforeEach(async () => {
-    content = await readFile(SOURCE_FILE, 'utf-8')
-    mkdirp(OUTPUT_BASE_DIR)
+  afterEach(() => {
+    mockfs.restore()
   })
 
-  afterEach(async () => {
-    await clean('dist')
-  })
+  it('should transpile file', async () => {
+    mockfs({
+      'dist': {},
+      './src/hello-world.ts': `
+        import { LitElement, html } from 'lit-element'
+        import './hello-world.css'
 
-  it('should have static get styles property', async () => { 
-    const mapFilePath = OUTPUT_FILE + '.map'
+        class HelloWorld extends LitElement { }
+      `,
+      './src/hello-world.css':`
+        h1 {
+          color: red
+        }
+      `
+    })
 
-    const result = transpiler(SOURCE_FILE, content)
-    await Promise.all([ 
-      writeFile(OUTPUT_FILE, result.code), writeFile(mapFilePath, result.map) 
-    ])
-        
-    expect(fs.existsSync(OUTPUT_FILE)).to.true
-    expect(fs.existsSync(mapFilePath)).to.true
-    expect(fs.readFileSync(OUTPUT_FILE, 'utf-8'))
-      .contains('static get styles() { return css `h1 {\r\n  color: red;\r\n}`; }\r\n}')
+    const output = await transpileFile('./src/hello-world.ts', {
+      compilerOptions: {
+        module: ts.ModuleKind.ES2015, 
+        target: ts.ScriptTarget.ES2018,
+        skipLibCheck: true,
+        skipDefaultLibCheck: true,
+        strictNullChecks: false,
+        sourceMap: false
+      }
+    })
+
+    await fs.promises.writeFile('./dist/output.js', output.code)
+    expect(fs.existsSync('./dist/output.js')).toBeTrue()
   })
 
 })

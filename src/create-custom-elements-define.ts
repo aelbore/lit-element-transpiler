@@ -5,6 +5,7 @@ function findCustomElementDecorator(statements) {
     return ts.isClassDeclaration(statement)
       && statement.decorators 
       && statement.decorators.length > 0
+      /// TODO: check the exact decorator => use Array.find
       /// @ts-ignore
       && statement.decorators[0].expression.expression.getText().includes('customElement')
   })
@@ -26,7 +27,7 @@ function removeCustomElementDecorator(statements) {
   })
 }
 
-function createCustomElements(tagName, className) {
+function createCustomElements(tagName: string, className: string) {
   const propertyAccess = ts.createPropertyAccess(
     ts.createIdentifier('customElements'), 
     ts.createIdentifier('define')
@@ -39,16 +40,19 @@ function createCustomElements(tagName, className) {
 }
 
 export function customElements() {
-  return context => {
+  return (context: ts.TransformationContext) => {
     const visitor = (node) => {
       if (Array.isArray(node.statements)) {
         const customElement = findCustomElementDecorator(node.statements)
         if (customElement) {          
           /// assume that only 1 decorator and 1 argument
           /// @customElement('<argument>')
+          /// tagName => argument
           const tagName = customElement.decorators[0].expression.arguments[0].getText()
 
           const statements = removeCustomElementDecorator(node.statements)
+          //// assume customElements.define
+          ///  is not exist
           statements.push(createCustomElements(tagName, customElement.name.text))
 
           node.statements = statements
