@@ -38,8 +38,8 @@ export function transpiler(filePath: string, code: string) {
 export function transpile(code: string, tsOptions?: TSConfigOptions) {
   const { outputText, sourceMapText } = ts.transpileModule(code, {
     compilerOptions: { 
-      module: ts.ModuleKind.ES2015, 
-      target: ts.ScriptTarget.ES2018,
+      module: ts.ModuleKind.ESNext, 
+      target: ts.ScriptTarget.ESNext,
       skipLibCheck: true,
       skipDefaultLibCheck: true,
       strictNullChecks: false,

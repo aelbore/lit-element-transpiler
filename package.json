@@ -34,6 +34,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.8",
     "@types/mocha": "^7.0.1",
+    "@types/mock-fs": "^4.10.0",
     "aria-build": "^0.1.0",
     "aria-fs": "^0.1.0",
     "aria-mocha": "^0.1.0",
