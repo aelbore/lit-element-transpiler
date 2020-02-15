@@ -19,7 +19,8 @@ export interface SassPreprocessor extends StylePreprocessor {
 }
 
 export interface PostCssPreprocessor extends StylePreprocessor {
-  plugins?: any[],
+  postcss?: any
+  plugins?: any[]
   map?: boolean | { inline?: boolean }
 }
 
@@ -47,7 +48,7 @@ async function buildSass(options?: CompileStyleOptions) {
 async function buildPostCss(options?: CompileStyleOptions) {
   const { file, content } = options
   const opts = options.opts as PostCssPreprocessor
-  const postcss = await import('postcss')
+  const postcss = await import('postcss') 
   const { css, map } = await postcss([ ...(opts.plugins || []) ])
     .process(content, { 
       from: file,
@@ -59,7 +60,7 @@ async function buildPostCss(options?: CompileStyleOptions) {
   }
 }
 
-async function process(css: string, file: string, opts?: StylePreprocessor) {
+function process(css: string, file: string, opts?: StylePreprocessor) {
   const options = { content: css, file, opts }
   switch (opts.preprocessor) {
     case 'postcss':

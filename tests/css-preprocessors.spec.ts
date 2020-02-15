@@ -1,7 +1,6 @@
 import * as fs from 'fs'
 import * as autoprefixer from 'autoprefixer'
 import * as postcssNested from 'postcss-nested'
-import * as cssnano from 'cssnano'
 
 import { expect } from 'aria-mocha'
 import { css, SassPreprocessor, PostCssPreprocessor } from '../src/css-preprocessors'
@@ -46,11 +45,17 @@ describe('css-preprocessors', () => {
 
     it('should build or compile scss file', async () => {
       const scssVarLike = require('postcss-simple-vars')
+      const cssnano = require('cssnano')
       const expected = '.level-one{--display:block;display:var(--display)}.level-one .level-one-one{color:red}'
 
       const options: PostCssPreprocessor = {
         preprocessor: 'postcss',
-        plugins: [ autoprefixer(), postcssNested(), scssVarLike(), cssnano() ]
+        plugins: [ 
+          autoprefixer(), 
+          postcssNested(), 
+          scssVarLike(), 
+          cssnano({ preset: 'default' }) 
+        ]
       }
       
       const result = await css(options).process(content, file)
@@ -59,13 +64,19 @@ describe('css-preprocessors', () => {
 
     it('should have sourcemap', async () => {
       const scssVarLike = require('postcss-simple-vars')
+      const cssnano = require('cssnano')
 
       const options: PostCssPreprocessor = {
         preprocessor: 'postcss',
         map: { 
           inline: false 
         },
-        plugins: [ autoprefixer(), postcssNested(), scssVarLike(), cssnano() ]
+        plugins: [ 
+          autoprefixer(), 
+          postcssNested(), 
+          scssVarLike(), 
+          cssnano({ preset: 'default' })  
+        ]
       }
 
       const result = await css(options).process(content, file)
