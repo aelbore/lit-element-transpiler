@@ -122,14 +122,6 @@ function createOrUpdateStaticGetStyle(statements, sourceFilePath, importStyles) 
     : updateStaticGetStyle(cssStyles)
 }
 
-/**
- * Steps
- * 1 get all the import styles 
- * 2 if has import styles start creating static get styles
- * 3 remove all the import styles
- * 4 create or update static get styles
- * 5 override the existing statements
- */
 export function inlineImportStyles(sourceFilePath) {
   return (context: ts.TransformationContext) => {
     const visitor: ts.Visitor = (node: any) => {

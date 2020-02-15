@@ -1,0 +1,8 @@
+$color: red; 
+.level-one {
+  --display: block;
+  display: var(--display);
+  .level-one-one {
+    color: $color;
+  }
+}
