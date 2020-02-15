@@ -37,10 +37,15 @@
     "aria-build": "^0.1.0",
     "aria-fs": "^0.1.0",
     "aria-mocha": "^0.1.0",
+    "autoprefixer": "^9.7.4",
     "chai": "^4.2.0",
+    "cssnano": "^4.1.10",
     "lit-element": "^2.2.1",
     "mock-fs": "git+https://github.com/tschaub/mock-fs.git",
     "node-sass": "^4.13.1",
+    "postcss": "^7.0.26",
+    "postcss-nested": "^4.2.1",
+    "postcss-simple-vars": "^5.0.2",
     "typescript": "^3.7.4"
   }
 }
