@@ -7,7 +7,7 @@
   "scripts": {
     "build": "aria-build -d --external typescript,postcss,node-sass",
     "test": "aria-mocha --dir specs --include-dir src --check-coverage",
-    "coveralls": "cat ./coverage/lcovonly | ./node_modules/coveralls/bin/coveralls.js"
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "repository": {
     "type": "git",
