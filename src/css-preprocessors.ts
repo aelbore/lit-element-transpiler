@@ -19,7 +19,6 @@ export interface SassPreprocessor extends StylePreprocessor {
 }
 
 export interface PostCssPreprocessor extends StylePreprocessor {
-  postcss?: any
   plugins?: any[]
   map?: boolean | { inline?: boolean }
 }

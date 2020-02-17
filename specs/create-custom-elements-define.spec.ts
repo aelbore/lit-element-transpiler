@@ -1,24 +1,23 @@
 import * as mockfs from 'mock-fs'
-import * as fs from 'fs'
 import * as ts from 'typescript'
 
 import { expect } from 'aria-mocha'
-import { transpiler } from '../src/transpiler'
+import { transform } from '../src/transpiler'
 import { getText } from '../src/utils'
-import { getOutputSource } from './ts-helpers'
+import { promisify } from './ts-helpers'
 
 describe('create-custom-elements-define', () => {
   let sourceFile: ts.SourceFile
 
   before(async () => {
-    mockfs({
-      './src/hello-world.ts': `
-        import { LitElement, html, css } from 'lit-element'
-        import './hello-world.css'
+    const content = `
+      import { LitElement, html, css } from 'lit-element'
+      import './hello-world.css'
 
-        @customElement('hello-world')
-        class HelloWorld extends LitElement { }
-      `,
+      @customElement('hello-world')
+      class HelloWorld extends LitElement { }    
+    `
+    mockfs({
       './src/hello-world.css':`
         h1 {
           color: red
@@ -26,9 +25,11 @@ describe('create-custom-elements-define', () => {
       `
     })
 
-    const code = await fs.promises.readFile('./src/hello-world.ts', 'utf-8')
-    const result = transpiler('./src/hello-world.ts', code)
-    sourceFile = await getOutputSource(result.code)
+    const result = await transform('./src/hello-world.ts', content)
+    sourceFile = ts.createSourceFile('./src/hello-world.js', 
+      result.code, 
+      ts.ScriptTarget.ES2015
+    )
   })
 
   after(() => {
@@ -45,7 +46,7 @@ describe('create-custom-elements-define', () => {
     })
     const statement = expressionStatements.pop() as ts.ExpressionStatement
 
-    const argNames = [ 'hello-world', 'HelloWorld' ]
+    const argNames = [ '"hello-world"', 'HelloWorld' ]
     const callExpression = statement.expression as ts.CallExpression
     expect(callExpression.arguments.length).equal(2)
     await Promise.all(callExpression.arguments.map(arg => {
@@ -54,18 +55,25 @@ describe('create-custom-elements-define', () => {
     }))
 
     const propertAccess = callExpression.expression as ts.PropertyAccessExpression
-    expect(getText(propertAccess.name)).equal('define')
-    expect(getText(propertAccess.expression as ts.Identifier)).equal('customElements')
+    await Promise.all([
+      promisify(() => expect(getText(propertAccess.name)).equal('define')),
+      promisify(() => {
+        expect(getText(propertAccess.expression as ts.Identifier)).equal('customElements')
+      })
+    ])
   })
 
-  it('should have only 1 expression statement', () => {
+  it('should have only 1 expression statement', async () => {
     const expressionStatements = sourceFile.statements.filter(statement => {
       return statement.kind === ts.SyntaxKind.ExpressionStatement
     })
-    expect(expressionStatements.length).equal(1)
-
-    const statement = expressionStatements.pop() as ts.ExpressionStatement
-    expect(statement.expression.kind).equal(ts.SyntaxKind.CallExpression)
+    await Promise.all([
+      promisify(() => expect(expressionStatements.length).equal(1)),
+      promisify(() => {
+        const statement = expressionStatements.pop() as ts.ExpressionStatement
+        expect(statement.expression.kind).equal(ts.SyntaxKind.CallExpression)
+      })
+    ])
   })
 
 })

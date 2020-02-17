@@ -3,9 +3,14 @@ import * as fs from 'fs'
 import * as ts from 'typescript'
 
 import { expect } from 'aria-mocha'
-import { transpiler } from '../src/transpiler'
-import { getText } from '../src/utils'
-import { getOutputSource, getClassDeclarations, getGetAccesors, getImportDeclarations, getImportClauseElements } from './ts-helpers'
+import { transform } from '../src/transpiler'
+import { getText, getImportClauseElements } from '../src/utils'
+import { 
+  getClassDeclarations, 
+  getGetAccesors, 
+  getImportDeclarations, 
+  promisify
+} from './ts-helpers'
 
 describe('create-static-get-properties', () => {
   function getBodyStatementExpr(accessor: ts.GetAccessorDeclaration) {
@@ -15,30 +20,24 @@ describe('create-static-get-properties', () => {
     return (statement as ts.ReturnStatement).expression as ts.ObjectLiteralExpression
   }
 
-  async function getSourceFile() {
-    const code = await fs.promises.readFile('./src/hello-world.ts', 'utf-8')
-    const result = transpiler('./src/hello-world.ts', code)
-    const sourceFile = await getOutputSource(result.code)
-    return sourceFile
-  }
-
   afterEach(() => {
     mockfs.restore()
   })
 
   it('should transform @property decorator into static get properties', async () => {
+    const content = `
+      import { LitElement, html, css } from 'lit-element'
+      import './hello-world.css'
+
+      @customElement('hello-world')
+      class HelloWorld extends LitElement { 
+
+        @property() firstName
+
+      }
+    `
+
     mockfs({
-      './src/hello-world.ts': `
-        import { LitElement, html, css } from 'lit-element'
-        import './hello-world.css'
-
-        @customElement('hello-world')
-        class HelloWorld extends LitElement { 
-
-          @property() firstName
-
-        }
-      `,
       './src/hello-world.css':`
         h1 {
           color: red
@@ -46,7 +45,12 @@ describe('create-static-get-properties', () => {
       `
     })
 
-    const sourceFile = await getSourceFile()
+    const result = await transform('./src/hello-world.ts', content)
+    const sourceFile = ts.createSourceFile(result.map.sources[0], 
+      result.code, 
+      ts.ScriptTarget.ES2015
+    )
+
     const classDeclarations = getClassDeclarations(sourceFile, { name: 'HelloWorld' })
     const accessors = getGetAccesors(classDeclarations)
 
@@ -66,20 +70,20 @@ describe('create-static-get-properties', () => {
   })
 
   it('should remove @property decorator(s)', async () => {
-    const litElementSpecifiers = [ 'LitElement', 'html', 'css' ]
+    const litElementSpecifiers = [ 'LitElement', 'css' ]
+    const content = `
+      import { LitElement, html, css } from 'lit-element'
+      import './hello-world.css'
+
+      @customElement('hello-world')
+      class HelloWorld extends LitElement { 
+
+        @property() firstName
+
+      }
+    `
 
     mockfs({
-      './src/hello-world.ts': `
-        import { LitElement, html, property } from 'lit-element'
-        import './hello-world.css'
-
-        @customElement('hello-world')
-        class HelloWorld extends LitElement { 
-
-          @property() firstName
-
-        }
-      `,
       './src/hello-world.css':`
         h1 {
           color: red
@@ -87,39 +91,47 @@ describe('create-static-get-properties', () => {
       `
     })
 
-    const sourceFile = await getSourceFile()
-    const imports = getImportDeclarations(sourceFile, { moduleSpecifer: 'lit-element' })
-    const specifiers = await getImportClauseElements(imports.pop())
+    const result = await transform('./src/hello-world.ts', content)
+    const sourceFile = ts.createSourceFile(result.map.sources[0], 
+      result.code, 
+      ts.ScriptTarget.ES2015
+    )
 
-    expect(sourceFile.decorators).toBeUndefined()
-    expect(specifiers.length).equal(litElementSpecifiers.length)
-    await Promise.all(specifiers.map(specifier => {
-      const text = getText(specifier.name as ts.Identifier)
-      expect(litElementSpecifiers.includes(text)).toBeTrue()
-    }))
+    const statements = getImportDeclarations(sourceFile, { moduleSpecifer: 'lit-element' })
+    const specifiers = getImportClauseElements({ statement: statements.pop() })
+
+    await Promise.all([
+      promisify(() => expect(sourceFile.decorators).toBeUndefined()),
+      promisify(() => expect(specifiers.length).equal(2)),
+      Promise.all(specifiers.map(specifier => {
+        const text = getText(specifier.name as ts.Identifier)
+        expect(litElementSpecifiers.includes(text)).toBeTrue()
+      }))
+    ])
+
   })
 
   it('should add/update existing static get properties', async () => {
     const propertyAssignments = [  'firstName', 'message' ]
+    const content = `
+      import { LitElement, html, css } from 'lit-element'
+      import './hello-world.css'
+
+      @customElement('hello-world')
+      class HelloWorld extends LitElement { 
+
+        @property() firstName
+
+        static get properties() {
+          return {
+            message: { type: String }
+          }
+        }
+
+      }
+    `
 
     mockfs({
-      './src/hello-world.ts': `
-        import { LitElement, html, css } from 'lit-element'
-        import './hello-world.css'
-
-        @customElement('hello-world')
-        class HelloWorld extends LitElement { 
-
-          @property() firstName
-
-          static get properties() {
-            return {
-              message: { type: String }
-            }
-          }
-
-        }
-      `,
       './src/hello-world.css':`
         h1 {
           color: red
@@ -127,7 +139,12 @@ describe('create-static-get-properties', () => {
       `
     })
 
-    const sourceFile = await getSourceFile()
+    const result = await transform('./src/hello-world.ts', content)
+    const sourceFile = ts.createSourceFile(result.map.sources[0], 
+      result.code, 
+      ts.ScriptTarget.ES2015
+    )
+
     const classDeclarations = getClassDeclarations(sourceFile, { name: 'HelloWorld' })
     const accessors = getGetAccesors(classDeclarations, { 
       modifierKind: ts.SyntaxKind.StaticKeyword, 
@@ -139,15 +156,18 @@ describe('create-static-get-properties', () => {
     const staticGetProperties = accessors.pop() as ts.GetAccessorDeclaration    
     const expression = getBodyStatementExpr(staticGetProperties)
     
-    /// should 2 properties 
-    //// firstName and message 
-    expect(expression.properties.length).equal(2)
-
-    /// test if property exist
-    await Promise.all(expression.properties.map(property => {
-      const text = getText(property.name as ts.Identifier)
-      expect(propertyAssignments.includes(text)).toBeTrue()
-    }))
+    await Promise.all([
+      promisify(() => {
+        /// should 2 properties 
+        //// firstName and message 
+        expect(expression.properties.length).equal(2)
+      }),
+      /// test if property exist
+      Promise.all(expression.properties.map(property => {
+        const text = getText(property.name as ts.Identifier)
+        expect(propertyAssignments.includes(text)).toBeTrue()
+      }))
+    ])
 
   })
 
@@ -161,25 +181,25 @@ describe('create-static-get-properties', () => {
       firstName: { type: 'String' }
     }
 
-    mockfs({
-      './src/hello-world.ts': `
-        import { LitElement, html } from 'lit-element'
-        import './hello-world.css'
+    const content = `
+      import { LitElement, html } from 'lit-element'
+      import './hello-world.css'
 
-        @customElement('hello-world')
-        class HelloWorld extends LitElement { 
+      @customElement('hello-world')
+      class HelloWorld extends LitElement { 
 
-          @property() firstName
-          @property({ type: Number, reflect: true }) count
+        @property() firstName
+        @property({ type: Number, reflect: true }) count
 
-          static get properties() {
-            return {
-              message: { type: String }
-            }
+        static get properties() {
+          return {
+            message: { type: String }
           }
-
         }
-      `,
+      }    
+    `
+
+    mockfs({
       './src/hello-world.css':`
         h1 {
           color: red
@@ -187,7 +207,12 @@ describe('create-static-get-properties', () => {
       `
     })
 
-    const sourceFile = await getSourceFile()
+    const result = await transform('./src/hello-world.ts', content)
+    const sourceFile = ts.createSourceFile(result.map.sources[0], 
+      result.code, 
+      ts.ScriptTarget.ES2015
+    )
+
     const classDeclarations = getClassDeclarations(sourceFile, { name: 'HelloWorld' })
     const accessors = getGetAccesors(classDeclarations, { 
       modifierKind: ts.SyntaxKind.StaticKeyword, 
