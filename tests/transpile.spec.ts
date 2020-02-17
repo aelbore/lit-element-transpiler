@@ -36,8 +36,14 @@ describe('Inline Styles', () => {
         
     expect(fs.existsSync(OUTPUT_FILE)).to.true
     expect(fs.existsSync(mapFilePath)).to.true
-    expect(fs.readFileSync(OUTPUT_FILE, 'utf-8'))
+
+    if (process.platform.includes('win32')) {
+      expect(fs.readFileSync(OUTPUT_FILE, 'utf-8'))
       .contains('static get styles() { return css `h1 {\r\n  color: red;\r\n}`; }\r\n}')
+    } else {
+      expect(fs.readFileSync(OUTPUT_FILE, 'utf-8'))
+      .contains('static get styles() { return css `h1 {\n  color: red;\n}`; }\n}')
+    }
   })
 
 })
