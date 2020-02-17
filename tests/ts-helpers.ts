@@ -54,6 +54,34 @@ export function getClassDeclarations(code: string, filters?: ClassDeclarationFil
   return classes
 }
 
+export function getDecorators(classDeclarations: ts.ClassDeclaration[], 
+  filters?: { 
+    decoratorNames?: string[]
+  }) {
+  let decorators: ts.Decorator[] = []
+
+  classDeclarations
+    .filter(cls => ts.isDecorator(cls))
+    .forEach(cls => {
+      decorators = decorators.concat(cls.decorators)
+    })
+
+  if (filters?.decoratorNames && filters.decoratorNames.length > 0) {
+    decorators = decorators.filter(decorator => {
+      let text: string
+      if (ts.isCallExpression(decorator.expression)) {
+        text = decorator.expression.expression.getText()
+      }
+      if (ts.isIdentifier(decorator.expression)) {
+        text = decorator.expression.getText()
+      }
+      return filters.decoratorNames.includes(text)
+    })
+  }
+
+  return decorators
+}
+
 export function getGetAccesors(classDeclarations: ts.ClassDeclaration[], filters?: GetAccessorFilter) {
   let getAccessors: ts.ClassElement[] = []
 
