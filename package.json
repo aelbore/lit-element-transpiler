@@ -6,7 +6,8 @@
   "typings": "lit-element-transpiler.d.ts",
   "scripts": {
     "build": "aria-build -d --external typescript,postcss,node-sass",
-    "test": "aria-mocha --dir tests --include-dir src --check-coverage --threshold statements=90,functions=90,branches=85,lines=90"
+    "test": "aria-mocha --dir specs --include-dir src --check-coverage",
+    "coveralls": "cat ./coverage/lcovonly | ./node_modules/coveralls/bin/coveralls.js"
   },
   "repository": {
     "type": "git",
@@ -31,8 +32,11 @@
   "peerDependencies": {
     "typescript": ">= ^3.7.0 < ^3.7.4"
   },
+  "dependencies": {
+    "magic-string": "^0.25.6"
+  },
   "devDependencies": {
-    "@types/chai": "^4.2.8",
+    "@types/chai": "^4.2.9",
     "@types/mocha": "^7.0.1",
     "@types/mock-fs": "^4.10.0",
     "aria-build": "^0.1.0",
@@ -40,7 +44,9 @@
     "aria-mocha": "^0.1.0",
     "autoprefixer": "^9.7.4",
     "chai": "^4.2.0",
+    "coveralls": "^3.0.9",
     "cssnano": "^4.1.10",
+    "cssnano-preset-default": "^4.0.7",
     "lit-element": "^2.2.1",
     "mock-fs": "git+https://github.com/tschaub/mock-fs.git",
     "node-sass": "^4.13.1",

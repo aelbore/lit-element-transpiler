@@ -2,32 +2,17 @@ import * as ts from 'typescript'
 import * as fs from 'fs'
 import * as path from 'path'
 
-import { inlineImportStyles } from './inline-import-styles'
-import { cssImportDeclation } from './css-import-declaration'
 import { inlinePropertyDecorators } from './create-static-get-properties'
 import { customElements } from './create-custom-elements-define'
+import { inlineCss } from './transpiler-css'
+import { StylePreprocessor, PostCssPreprocessor } from './css-preprocessors'
 
+/**
+ * tsconfig and transformer options
+ */
 export interface TSConfigOptions {
   compilerOptions?: ts.CompilerOptions
   transformers?: ts.CustomTransformers
-}
-
-/**
- * This will transpiler the code a
- * and inline the decorators and styles css/scss
- * @param filePath file path of the typescript or javascript file
- * @param code extract code of the file
- */
-export function transpiler(filePath: string, code: string) {
-  const transformers = {
-    before: [
-      customElements(),
-      inlineImportStyles(filePath),
-      cssImportDeclation(),
-      inlinePropertyDecorators()
-    ]
-  }
-  return transpile(code, { transformers })
 }
 
 /**
@@ -54,11 +39,32 @@ export function transpile(code: string, tsOptions?: TSConfigOptions) {
 }
 
 /**
- * Asyncchronous transpile of the give file path
- * @param filePath extract code form the file
- * @param tsOptions typescript options
+ * This will asynchronous transfile the file
+ * @param file file path of the typescript or javascript file
+ * @param content extract code of the file
+ * @param opts transform options includes typescript compilerOptions and cssOptions
  */
-export async function transpileFile(filePath: string, tsOptions?: TSConfigOptions) { 
-  const code = await fs.promises.readFile(path.resolve(filePath), 'utf-8')
-  return transpile(code, tsOptions)
+export async function transform(file: string, 
+  content: string, 
+  opts?: {
+    compilerOptions?: ts.CompilerOptions,
+    cssOptions?: StylePreprocessor | PostCssPreprocessor
+}) {
+  const result = await inlineCss({ 
+    file, 
+    content, 
+    opts: { ...(opts?.cssOptions || {}) }
+  })
+
+  const { code } = transpile(result.code, {  
+    compilerOptions: {
+      sourceMap: false,
+      ...(opts?.compilerOptions || {})
+    },
+    transformers: {
+      before: [ customElements(), inlinePropertyDecorators() ]
+    }
+  })
+
+  return { code, map: result.map }
 }

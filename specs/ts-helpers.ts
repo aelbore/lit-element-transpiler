@@ -36,7 +36,7 @@ export function getClassDeclarations(sourceFile: ts.SourceFile, filters?: ClassD
               && heritageClause.types.find(type => {
                   return ts.isExpressionWithTypeArguments(type) 
                     && ts.isIdentifier(type.expression) 
-                    && type.expression.getText().includes(filters.extendsClass)
+                    && getText(type.expression).includes(filters.extendsClass)
                  })
           }) 
     })
@@ -130,26 +130,20 @@ export async function getImportClauseElements(importDeclation: ts.ImportDeclarat
   return elements
 }
 
-export async function getOutputSource(code: string) {
-  const mockfs = await import('mock-fs')
-  const fileName = './dist/output.js'
+export function getStyleReturnStatement(accessor: ts.ClassElement) {
+  if (ts.isGetAccessor(accessor)) {
+    const bodyStatement = accessor.body.statements[0]
+    const expression = (bodyStatement as ts.ReturnStatement).expression
+    if (ts.isArrayLiteralExpression(expression)) {
+      return expression.elements
+    }
+    return ts.createNodeArray([ expression ])
+  }
+}
 
-  mockfs.restore()
-  mockfs({ 
-    'dist': {} 
+export function promisify (fnCallback: Function) {
+  return new Promise((resolve) => {
+    fnCallback()
+    resolve()
   })
-
-  await fs.promises.writeFile(fileName, code)
-
-  const program = ts.createProgram([ fileName ], {      
-    module: ts.ModuleKind.ES2015, 
-    target: ts.ScriptTarget.ES2018,
-    skipLibCheck: true,
-    skipDefaultLibCheck: true,
-    strictNullChecks: false,
-    sourceMap: false,
-    allowJs: true
-  })
-
-  return program.getSourceFile(fileName)
 }
