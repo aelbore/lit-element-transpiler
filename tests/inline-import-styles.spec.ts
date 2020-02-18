@@ -67,8 +67,9 @@ describe('inline-import-styles', () => {
 
     const code = await fs.promises.readFile('./src/hello-world.ts', 'utf-8')
     const result = transpiler('./src/hello-world.ts', code)
+    const sourceFile = await getOutputSource(result.code)
 
-    const imports = getImportDeclarations(result.code)
+    const imports = getImportDeclarations(sourceFile)
     expect(imports.length).equal(1)
     
     await Promise.all(imports.map(i =>  {

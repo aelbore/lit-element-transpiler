@@ -7,13 +7,9 @@ import { transpiler } from '../src/transpiler'
 import { getOutputSource } from './ts-helpers'
 
 describe('create-custom-elements-define', () => {
+  let sourceFile: ts.SourceFile
 
-  afterEach(() => {
-    mockfs.restore()
-  })
-  
-  it('transform [@customElement] decorator to customElements.define', async () => {
-
+  before(async () => {
     mockfs({
       './src/hello-world.ts': `
         import { LitElement, html, css } from 'lit-element'
@@ -28,21 +24,25 @@ describe('create-custom-elements-define', () => {
         }
       `
     })
-    
 
     const code = await fs.promises.readFile('./src/hello-world.ts', 'utf-8')
     const result = transpiler('./src/hello-world.ts', code)
-    const sourceFile = await getOutputSource(result.code)
+    sourceFile = await getOutputSource(result.code)
+  })
 
+  after(() => {
+    mockfs.restore()
+  })
+
+  it('should remove [@customElement] decorator', () => {
     expect(sourceFile.decorators).toBeUndefined()
-
+  })
+  
+  it('should transform [@customElement] decorator to customElements.define', async () => {
     const expressionStatements = sourceFile.statements.filter(statement => {
       return statement.kind === ts.SyntaxKind.ExpressionStatement
     })
-    expect(expressionStatements.length).equal(1)
-
     const statement = expressionStatements.pop() as ts.ExpressionStatement
-    expect(statement.expression.kind).equal(ts.SyntaxKind.CallExpression)
 
     const argNames = [ 'hello-world', 'HelloWorld' ]
     const callExpression = statement.expression as ts.CallExpression
@@ -57,6 +57,16 @@ describe('create-custom-elements-define', () => {
     expect(
       (propertAccess.expression as ts.Identifier).text
     ).equal('customElements')
+  })
+
+  it('should have only 1 expression statement', () => {
+    const expressionStatements = sourceFile.statements.filter(statement => {
+      return statement.kind === ts.SyntaxKind.ExpressionStatement
+    })
+    expect(expressionStatements.length).equal(1)
+
+    const statement = expressionStatements.pop() as ts.ExpressionStatement
+    expect(statement.expression.kind).equal(ts.SyntaxKind.CallExpression)
   })
 
 })

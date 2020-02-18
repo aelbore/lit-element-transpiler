@@ -11,6 +11,10 @@ export interface ClassDeclarationFilter {
   extendsClass?: string;
 }
 
+export interface DecoratorFilter {
+  decoratorNames?: string[]
+}
+
 export function getNode(code: string) {
   let result: any
   function importDeclarations() {
@@ -68,10 +72,7 @@ export function getClassDeclarations(sourceFile: ts.SourceFile, filters?: ClassD
   return classes
 }
 
-export function getDecorators(classDeclarations: ts.ClassDeclaration[], 
-  filters?: { 
-    decoratorNames?: string[]
-  }) {
+export function getDecorators(classDeclarations: ts.ClassDeclaration[], filters?: DecoratorFilter) {
   let decorators: ts.Decorator[] = []
 
   classDeclarations
@@ -124,31 +125,18 @@ export function getGetAccesors(classDeclarations: ts.ClassDeclaration[], filters
   return getAccessors
 }
 
-export function getImportDeclarations(code: string, filters?: {
-  moduleSpecifer?: string
-}) {
-  const results = []
-  function importDeclarations() {
-    return (context: ts.TransformationContext) => {
-      const visitor = (node: ts.Node) => {
-        if (ts.isImportDeclaration(node)) {
-          results.push(node)
-        }
-        return ts.visitEachChild(node, (child) => visitor(child), context)
-      }
-      return visitor
-    }
-  }
+export function getImportDeclarations(sourceFile: ts.SourceFile, filters?: {  moduleSpecifer?: string }) {
+  let imports = sourceFile.statements
+    .filter(statement => ts.isImportDeclaration(statement))
+    .map(statement => (statement as ts.ImportDeclaration))
 
-  transpile(code, { 
-    transformers: {
-      before: [ importDeclarations() ]
-    }
-  })
-
-  let imports = [ ...results ].map(result => (result as ts.ImportDeclaration))
   if (filters?.moduleSpecifer) {
-    imports = imports.filter(specifier => specifier.getText().includes(filters.moduleSpecifer))
+    imports = imports.filter(specifier => {
+      const text = specifier.moduleSpecifier.hasOwnProperty('text')
+        ? (specifier.moduleSpecifier as ts.Identifier).text
+        : ''
+      return text.includes(filters.moduleSpecifer) 
+    })
   }
 
   return imports

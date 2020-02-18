@@ -4,7 +4,7 @@ import * as ts from 'typescript'
 
 import { expect } from 'aria-mocha'
 import { transpiler } from '../src/transpiler'
-import { getImportDeclarations } from './ts-helpers'
+import { getImportDeclarations, getOutputSource } from './ts-helpers'
 
 describe('css-import-declaration', () => {
 
@@ -31,8 +31,9 @@ describe('css-import-declaration', () => {
 
     const code = await fs.promises.readFile('./src/hello-world.ts', 'utf-8')
     const result = transpiler('./src/hello-world.ts', code)
+    const sourceFile = await getOutputSource(result.code)
     
-    const imports = getImportDeclarations(result.code, { moduleSpecifer: 'lit-element' })
+    const imports = getImportDeclarations(sourceFile, { moduleSpecifer: 'lit-element' })
     expect(imports.length).equal(1)
 
     const litElementImport = imports.pop()
@@ -40,7 +41,10 @@ describe('css-import-declaration', () => {
 
     expect(elements.length).equal(3)
     await Promise.all(elements.map(element => {
-      expect(expectedElements.includes(element.name.getText()))
+      const text = element.name.hasOwnProperty('escapedText')
+        ? element.name.escapedText.toString()
+        : element.name.hasOwnProperty('text') ? element.name.text: ''
+      expect(expectedElements.includes(text))
     }))
   })
 
@@ -63,8 +67,9 @@ describe('css-import-declaration', () => {
 
     const code = await fs.promises.readFile('./src/hello-world.ts', 'utf-8')
     const result = transpiler('./src/hello-world.ts', code)
+    const sourceFile = await getOutputSource(result.code)
     
-    const imports = getImportDeclarations(result.code, { moduleSpecifer: 'lit-element' })
+    const imports = getImportDeclarations(sourceFile, { moduleSpecifer: 'lit-element' })
     expect(imports.length).equal(1)
 
     const litElementImport = imports.pop()
@@ -72,9 +77,11 @@ describe('css-import-declaration', () => {
 
     expect(elements.length).equal(3)
     await Promise.all(elements.map(element => {
-      expect(expectedElements.includes(element.name.getText()))
+      const text = element.name.hasOwnProperty('escapedText')
+        ? element.name.escapedText.toString()
+        : element.name.hasOwnProperty('text') ? element.name.text: ''
+      expect(expectedElements.includes(text))
     }))
   })
-
 
 })
