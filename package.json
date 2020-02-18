@@ -6,7 +6,7 @@
   "typings": "lit-element-transpiler.d.ts",
   "scripts": {
     "build": "aria-build -d --external typescript",
-    "test": "aria test --dir tests"
+    "test": "aria test --dir tests --include-dir src --check-coverage"
   },
   "repository": {
     "type": "git",

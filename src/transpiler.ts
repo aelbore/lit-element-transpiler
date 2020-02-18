@@ -49,7 +49,7 @@ export function transpile(code: string, tsOptions?: TSConfigOptions) {
     transformers: {
       ...(tsOptions?.transformers || {})
     }
-  }); 
+  })
   return { code: outputText, map: sourceMapText }
 }
 

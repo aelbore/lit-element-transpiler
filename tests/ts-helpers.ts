@@ -11,13 +11,14 @@ export interface ClassDeclarationFilter {
   extendsClass?: string;
 }
 
-export function getClassDeclarations(code: string, filters?: ClassDeclarationFilter) {
-  const results: ts.ClassDeclaration[] = []
-  function classDeclarations() {
+export function getNode(code: string) {
+  let result: any
+  function importDeclarations() {
     return (context: ts.TransformationContext) => {
-      const visitor = (node: ts.Node) => {
-        if (ts.isClassDeclaration(node)) {
-          results.push(node)
+      const visitor = (node: any) => {
+        if (Array.isArray(node.statements)) {
+          result = node
+          return node
         }
         return ts.visitEachChild(node, (child) => visitor(child), context)
       }
@@ -25,16 +26,29 @@ export function getClassDeclarations(code: string, filters?: ClassDeclarationFil
     }
   }
 
-  transpile(code, {
+  transpile(code, { 
     transformers: {
-      before: [ classDeclarations() ]
+      before: [ importDeclarations() ]
     }
   })
 
-  let classes: ts.ClassDeclaration[] = [ ...results ]
+  return result
+}
+
+export function getClassDeclarations(sourceFile: ts.SourceFile, filters?: ClassDeclarationFilter) {
+  let classes = sourceFile.statements
+    .filter(statement => ts.isClassDeclaration(statement))
+    .map(statement => (statement as ts.ClassDeclaration))
 
   if (filters?.name) {
-    classes = classes.filter(cls => cls.name.getText().includes(filters.name))
+    classes = classes.filter(cls => {
+      return (cls.name.hasOwnProperty('escapedText') 
+        ? cls.name.escapedText.toString()
+        : cls.name.hasOwnProperty('text')
+           ? cls.name.text
+           : ''
+      ).includes(filters.name)
+    })
   }
 
   if (filters?.extendsClass) {
@@ -138,4 +152,30 @@ export function getImportDeclarations(code: string, filters?: {
   }
 
   return imports
+}
+
+export async function getOutputSource(code: string) {
+  const mockfs = await import('mock-fs')
+  const fs = await import('fs')
+
+  const fileName = './dist/output.js'
+
+  mockfs.restore()
+  mockfs({ 
+    'dist': {} 
+  })
+
+  await fs.promises.writeFile(fileName, code)
+
+  const program = ts.createProgram([ fileName ], {      
+    module: ts.ModuleKind.ES2015, 
+    target: ts.ScriptTarget.ES2018,
+    skipLibCheck: true,
+    skipDefaultLibCheck: true,
+    strictNullChecks: false,
+    sourceMap: false,
+    allowJs: true
+  })
+
+  return program.getSourceFile(fileName)
 }

@@ -4,7 +4,7 @@ import * as fs from 'fs'
 import * as ts from 'typescript'
 
 import { expect } from 'aria-mocha'
-import { getClassDeclarations, getGetAccesors, getImportDeclarations } from './ts-helpers'
+import { getClassDeclarations, getGetAccesors, getImportDeclarations, getOutputSource } from './ts-helpers'
 import { transpiler } from '../src/transpiler'
 
 describe('inline-import-styles', () => {
@@ -30,8 +30,9 @@ describe('inline-import-styles', () => {
 
     const code = await fs.promises.readFile('./src/hello-world.ts', 'utf-8')
     const result = transpiler('./src/hello-world.ts', code)
+    const sourceFile = await getOutputSource(result.code)
 
-    const classDeclarations = getClassDeclarations(result.code, { name: 'HelloWorld' })
+    const classDeclarations = getClassDeclarations(sourceFile, { name: 'HelloWorld' })
     const accessors = getGetAccesors(classDeclarations)
 
     /// it is expected to have only 1 getter
@@ -39,7 +40,7 @@ describe('inline-import-styles', () => {
     
     /// test if the getter has styles name
     const staticGetAccessor = accessors.pop()
-    expect(staticGetAccessor.getText().includes('styles'))
+    expect((staticGetAccessor.name as ts.Identifier).escapedText.toString().includes('styles'))
 
     /// test if only 1 modifers
     /// modifier should only static keyword
