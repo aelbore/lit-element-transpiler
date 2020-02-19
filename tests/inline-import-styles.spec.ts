@@ -6,6 +6,7 @@ import * as ts from 'typescript'
 import { expect } from 'aria-mocha'
 import { getClassDeclarations, getGetAccesors, getImportDeclarations, getOutputSource } from './ts-helpers'
 import { transpiler } from '../src/transpiler'
+import { getText } from '../src/utils'
 
 describe('inline-import-styles', () => {
 
@@ -40,7 +41,8 @@ describe('inline-import-styles', () => {
     
     /// test if the getter has styles name
     const staticGetAccessor = accessors.pop()
-    expect((staticGetAccessor.name as ts.Identifier).escapedText.toString().includes('styles'))
+    const text = getText(staticGetAccessor.name as ts.Identifier)
+    expect(text.includes('styles')).toBeTrue()
 
     /// test if only 1 modifers
     /// modifier should only static keyword

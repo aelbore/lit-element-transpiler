@@ -1,5 +1,7 @@
 import * as ts from 'typescript'
-import { transpile } from '../src/transpiler'
+import * as fs from 'fs'
+
+import { getText } from '../src/utils'
 
 export interface GetAccessorFilter {
   modifierKind?: ts.SyntaxKind;
@@ -15,30 +17,6 @@ export interface DecoratorFilter {
   decoratorNames?: string[]
 }
 
-export function getNode(code: string) {
-  let result: any
-  function importDeclarations() {
-    return (context: ts.TransformationContext) => {
-      const visitor = (node: any) => {
-        if (Array.isArray(node.statements)) {
-          result = node
-          return node
-        }
-        return ts.visitEachChild(node, (child) => visitor(child), context)
-      }
-      return visitor
-    }
-  }
-
-  transpile(code, { 
-    transformers: {
-      before: [ importDeclarations() ]
-    }
-  })
-
-  return result
-}
-
 export function getClassDeclarations(sourceFile: ts.SourceFile, filters?: ClassDeclarationFilter) {
   let classes = sourceFile.statements
     .filter(statement => ts.isClassDeclaration(statement))
@@ -46,12 +24,7 @@ export function getClassDeclarations(sourceFile: ts.SourceFile, filters?: ClassD
 
   if (filters?.name) {
     classes = classes.filter(cls => {
-      return (cls.name.hasOwnProperty('escapedText') 
-        ? cls.name.escapedText.toString()
-        : cls.name.hasOwnProperty('text')
-           ? cls.name.text
-           : ''
-      ).includes(filters.name)
+      return getText(cls.name).includes(filters.name)
     })
   }
 
@@ -118,7 +91,7 @@ export function getGetAccesors(classDeclarations: ts.ClassDeclaration[], filters
 
   if (filters?.name) {
     getAccessors = getAccessors.filter(member => {
-      return member.name.getText().includes(filters.name)
+      return getText(member.name as ts.Identifier).includes(filters.name)
     })
   }
 
@@ -142,10 +115,23 @@ export function getImportDeclarations(sourceFile: ts.SourceFile, filters?: {  mo
   return imports
 }
 
+export async function getImportClauseElements(importDeclation: ts.ImportDeclaration, bindingsKind: ts.SyntaxKind = ts.SyntaxKind.NamedImports) {
+  let elements: ts.ImportSpecifier[] = []
+  if (importDeclation.importClause) {
+    switch (bindingsKind) {
+      case ts.SyntaxKind.NamedImports:
+        const namedImports = importDeclation.importClause.namedBindings as ts.NamedImports
+        elements = await Promise.all(namedImports.elements.map(element => {
+          return (element as ts.ImportSpecifier)
+        }))
+        break
+    }
+  }
+  return elements
+}
+
 export async function getOutputSource(code: string) {
   const mockfs = await import('mock-fs')
-  const fs = await import('fs')
-
   const fileName = './dist/output.js'
 
   mockfs.restore()

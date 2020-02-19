@@ -34,7 +34,7 @@ describe('transpile', () => {
         skipLibCheck: true,
         skipDefaultLibCheck: true,
         strictNullChecks: false,
-        sourceMap: true
+        sourceMap: false
       }
     })
 

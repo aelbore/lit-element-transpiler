@@ -1,4 +1,5 @@
 import * as ts from 'typescript'
+import { getText } from './utils'
 
 function createPropertyAssignment(propertyMembers) {
   return propertyMembers.filter(property => {
@@ -118,12 +119,28 @@ function updateNodeMembers(members) {
   return members
 }
 
+function removePropertyImportSpecifier(node: ts.ImportDeclaration) {
+  const namedBindings = (node.importClause.namedBindings as ts.NamedImports)
+  return ts.updateNamedImports(
+    namedBindings, [ 
+      ...namedBindings.elements.filter(element => {
+          return !getText(element.name).includes('property')
+         }) 
+    ]
+  )
+}
+
 export function inlinePropertyDecorators() {
   return context => {
     const visitor = (node) => {
-      /// add condition to make sure class extends 
+      /// TODO: add condition to make sure class extends 
       if (ts.isClassDeclaration(node)) {
         node.members = updateNodeMembers(node.members)
+      }
+      if (ts.isImportDeclaration(node) && node.moduleSpecifier.getText().includes('lit-element')) {      
+        //// if you are using rollup and treeshake is set to true
+        ///  rollup will remove it if the `property` importSpecifier is not use
+        node.importClause.namedBindings = removePropertyImportSpecifier(node)
       }
       return ts.visitEachChild(node, (child) => visitor(child), context)
     }

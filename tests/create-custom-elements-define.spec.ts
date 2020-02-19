@@ -4,6 +4,7 @@ import * as ts from 'typescript'
 
 import { expect } from 'aria-mocha'
 import { transpiler } from '../src/transpiler'
+import { getText } from '../src/utils'
 import { getOutputSource } from './ts-helpers'
 
 describe('create-custom-elements-define', () => {
@@ -53,10 +54,8 @@ describe('create-custom-elements-define', () => {
     }))
 
     const propertAccess = callExpression.expression as ts.PropertyAccessExpression
-    expect(propertAccess.name.text).equal('define')
-    expect(
-      (propertAccess.expression as ts.Identifier).text
-    ).equal('customElements')
+    expect(getText(propertAccess.name)).equal('define')
+    expect(getText(propertAccess.expression as ts.Identifier)).equal('customElements')
   })
 
   it('should have only 1 expression statement', () => {

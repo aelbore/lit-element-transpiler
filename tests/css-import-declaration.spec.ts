@@ -5,6 +5,7 @@ import * as ts from 'typescript'
 import { expect } from 'aria-mocha'
 import { transpiler } from '../src/transpiler'
 import { getImportDeclarations, getOutputSource } from './ts-helpers'
+import { getText } from '../src/utils'
 
 describe('css-import-declaration', () => {
 
@@ -41,9 +42,7 @@ describe('css-import-declaration', () => {
 
     expect(elements.length).equal(3)
     await Promise.all(elements.map(element => {
-      const text = element.name.hasOwnProperty('escapedText')
-        ? element.name.escapedText.toString()
-        : element.name.hasOwnProperty('text') ? element.name.text: ''
+      const text = getText(element.name)
       expect(expectedElements.includes(text))
     }))
   })
@@ -77,9 +76,7 @@ describe('css-import-declaration', () => {
 
     expect(elements.length).equal(3)
     await Promise.all(elements.map(element => {
-      const text = element.name.hasOwnProperty('escapedText')
-        ? element.name.escapedText.toString()
-        : element.name.hasOwnProperty('text') ? element.name.text: ''
+      const text = getText(element.name)
       expect(expectedElements.includes(text))
     }))
   })
