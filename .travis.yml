@@ -5,7 +5,9 @@ node_js: '11.6'
 branches:
   only:
   - master
+before_install:
+  - npm install -g yarn --cache-min 999999999
 install: 
-  - npm install
+  - yarn install
 script:
-  - npm run build && npm test
+  - yarn build && yarn test

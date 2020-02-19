@@ -32,13 +32,15 @@
     "typescript": ">= ^3.7.0 < ^3.7.4"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.7",
-    "@types/mocha": "^5.2.7",
-    "aria-build": "^0.0.23",
-    "aria-mocha": "^0.0.7",
+    "@types/chai": "^4.2.8",
+    "@types/mocha": "^7.0.1",
+    "aria-build": "^0.1.0",
+    "aria-fs": "^0.1.0",
+    "aria-mocha": "^0.1.0",
     "chai": "^4.2.0",
     "lit-element": "^2.2.1",
-    "node-sass": "^4.13.0",
+    "mock-fs": "git+https://github.com/tschaub/mock-fs.git",
+    "node-sass": "^4.13.1",
     "typescript": "^3.7.4"
   }
 }
