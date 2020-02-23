@@ -46,7 +46,7 @@ describe('create-custom-elements-define', () => {
     })
     const statement = expressionStatements.pop() as ts.ExpressionStatement
 
-    const argNames = [ '"hello-world"', 'HelloWorld' ]
+    const argNames = [ 'hello-world', 'HelloWorld' ]
     const callExpression = statement.expression as ts.CallExpression
     expect(callExpression.arguments.length).equal(2)
     await Promise.all(callExpression.arguments.map(arg => {

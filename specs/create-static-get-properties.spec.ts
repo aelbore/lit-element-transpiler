@@ -1,5 +1,4 @@
 import * as mockfs from 'mock-fs'
-import * as fs from 'fs'
 import * as ts from 'typescript'
 
 import { expect } from 'aria-mocha'
@@ -46,7 +45,7 @@ describe('create-static-get-properties', () => {
     })
 
     const result = await transform('./src/hello-world.ts', content)
-    const sourceFile = ts.createSourceFile(result.map.sources[0], 
+    const sourceFile = ts.createSourceFile('./src/hello-world.js', 
       result.code, 
       ts.ScriptTarget.ES2015
     )
@@ -92,7 +91,7 @@ describe('create-static-get-properties', () => {
     })
 
     const result = await transform('./src/hello-world.ts', content)
-    const sourceFile = ts.createSourceFile(result.map.sources[0], 
+    const sourceFile = ts.createSourceFile('./src/hello-world.js', 
       result.code, 
       ts.ScriptTarget.ES2015
     )
@@ -102,7 +101,7 @@ describe('create-static-get-properties', () => {
 
     await Promise.all([
       promisify(() => expect(sourceFile.decorators).toBeUndefined()),
-      promisify(() => expect(specifiers.length).equal(2)),
+      promisify(() => expect(specifiers.length).equal(1)),
       Promise.all(specifiers.map(specifier => {
         const text = getText(specifier.name as ts.Identifier)
         expect(litElementSpecifiers.includes(text)).toBeTrue()
@@ -140,7 +139,7 @@ describe('create-static-get-properties', () => {
     })
 
     const result = await transform('./src/hello-world.ts', content)
-    const sourceFile = ts.createSourceFile(result.map.sources[0], 
+    const sourceFile = ts.createSourceFile('./src/hello-world.js', 
       result.code, 
       ts.ScriptTarget.ES2015
     )
@@ -208,7 +207,7 @@ describe('create-static-get-properties', () => {
     })
 
     const result = await transform('./src/hello-world.ts', content)
-    const sourceFile = ts.createSourceFile(result.map.sources[0], 
+    const sourceFile = ts.createSourceFile('./src/hello-world.js', 
       result.code, 
       ts.ScriptTarget.ES2015
     )

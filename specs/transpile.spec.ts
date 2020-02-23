@@ -43,7 +43,7 @@ describe('transpile', () => {
     const staticGetProperties = getGetAccesors(classes, {
       name: 'properties', modifierKind: ts.SyntaxKind.StaticKeyword
     })
-    const staticGetStyle =getGetAccesors(classes, {
+    const staticGetStyle = getGetAccesors(classes, {
       name: 'styles', modifierKind: ts.SyntaxKind.StaticKeyword
     })
 

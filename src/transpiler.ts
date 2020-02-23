@@ -1,11 +1,10 @@
 import * as ts from 'typescript'
-import * as fs from 'fs'
-import * as path from 'path'
 
 import { inlinePropertyDecorators } from './create-static-get-properties'
 import { customElements } from './create-custom-elements-define'
-import { inlineCss } from './transpiler-css'
+import { getImportStyles, transformStyles } from './transpiler-css'
 import { StylePreprocessor, PostCssPreprocessor } from './css-preprocessors'
+import { MagicString } from './libs'
 
 /**
  * tsconfig and transformer options
@@ -50,21 +49,21 @@ export async function transform(file: string,
     compilerOptions?: ts.CompilerOptions,
     cssOptions?: StylePreprocessor | PostCssPreprocessor
 }) {
-  const result = await inlineCss({ 
-    file, 
-    content, 
-    opts: { ...(opts?.cssOptions || {}) }
-  })
+  const magicString = new MagicString(content)
+  const styles = await getImportStyles(file, content, opts?.cssOptions)
 
-  const { code } = transpile(result.code, {  
+  const { code, map } = transpile(magicString.toString(), {  
     compilerOptions: {
-      sourceMap: false,
       ...(opts?.compilerOptions || {})
     },
     transformers: {
-      before: [ customElements(), inlinePropertyDecorators() ]
+      before: [ 
+        customElements(), 
+        inlinePropertyDecorators(),
+        transformStyles({ styles })
+      ]
     }
   })
 
-  return { code, map: result.map }
+  return { code, map }
 }
