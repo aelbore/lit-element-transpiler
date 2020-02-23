@@ -2,7 +2,7 @@ import * as mockfs from 'mock-fs'
 import * as ts from 'typescript'
 
 import { expect } from 'aria-mocha'
-import { inlineCss } from '../src/transpiler-css'
+import { transform } from '../src/transpiler'
 import { getGetAccesors, getClassDeclarations, getStyleReturnStatement } from './ts-helpers'
 
 describe('transpiler-multiple-css', () => {
@@ -30,7 +30,7 @@ describe('transpiler-multiple-css', () => {
       `
     })
 
-    const result = await inlineCss({ file: './src/hello-world.ts', content })
+    const result = await transform('./src/hello-world.ts', content)
     sourceFile = ts.createSourceFile('./src/hello-world.js', 
       result.code,
       ts.ScriptTarget.ES2015,

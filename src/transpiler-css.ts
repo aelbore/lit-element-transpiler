@@ -2,9 +2,8 @@ import * as ts from 'typescript'
 import * as fs from 'fs'
 import * as path from 'path'
 
-import MagicString from 'magic-string'
 import { getText, getImportClauseElement, updateImportClauseNameImports } from './utils'
-import { CompileStyleOptions, StylePreprocessor, css } from './css-preprocessors'
+import { StylePreprocessor, css } from './css-preprocessors'
 
 function findAllImportDeclarations(statements: ts.NodeArray<ts.Statement>) {
   return statements.filter(statement => ts.isImportDeclaration(statement))
@@ -17,23 +16,6 @@ function findAllImportStyles(statements: ts.Statement[]) {
       && (text.includes('.css') || text.includes('.scss'))
   })
 }
-
-function getStyles(tsFile: string, 
-  importStyles: ts.Statement[], 
-  opts?: StylePreprocessor
-) {
-  const { resolve, dirname, extname } = path
-  return Promise.all(importStyles.map(async (statement: ts.ImportDeclaration) => {
-    const text = getText(statement.moduleSpecifier as ts.Identifier)
-    const cssFullPath = resolve(dirname(tsFile), text.replace(/'/g, '').replace(/"/g, ''))
-    const content = await fs.promises.readFile(cssFullPath, 'utf-8')
-    if (extname(cssFullPath).includes('.scss')) {
-      const preprocessor = await css(opts).process(content, cssFullPath)
-      return preprocessor.css
-    }
-    return content
-  }))
-} 
 
 function updateImportCssSpecifer(statements: ts.Statement[]) {
   for (const statement of statements) {
@@ -53,12 +35,12 @@ function updateImportCssSpecifer(statements: ts.Statement[]) {
   }
 }
 
-async function removeAllImportStyles(importStyles: ts.Statement[], 
+function removeAllImportStylesSync(importStyles: ts.Statement[], 
   statements: ts.NodeArray<ts.Statement>
 ) {
-  const importStyleNames = await Promise.all(importStyles.map((style: ts.ImportDeclaration) => { 
+  const importStyleNames = importStyles.map((style: ts.ImportDeclaration) => { 
     return getText(style.moduleSpecifier as ts.Identifier) 
-  }))
+  })
   return statements.filter(statement => {
     return !(ts.isImportDeclaration(statement)
       && !statement.hasOwnProperty('importClause')
@@ -67,16 +49,14 @@ async function removeAllImportStyles(importStyles: ts.Statement[],
   })
 }
 
-async function createReturnStatement(cssStyles: string[]) {
-  async function createArrayLiteralStyles(cssStyles: string[]) {
-    const elements = await Promise.all(cssStyles.map(cssStyle => {
-      return createCSSTagTemplate(cssStyle)
-    }))
+function createReturnStatementSync(cssStyles: string[]) {
+  function createArrayLiteralStyles(cssStyles: string[]) {
+    const elements = cssStyles.map(cssStyle => createCSSTagTemplate(cssStyle))
     return ts.createArrayLiteral(elements)
   }
 
-  async function createReturn(styles: string[]) {
-    const css = await createArrayLiteralStyles(cssStyles)
+  function createReturn(styles: string[]) {
+    const css = createArrayLiteralStyles(styles)
     return ts.createReturn(css)
   }
   
@@ -88,12 +68,12 @@ async function createReturnStatement(cssStyles: string[]) {
   }
 
   return cssStyles.length > 1
-    ? await createReturn(cssStyles)
+    ? createReturn(cssStyles)
     : ts.createReturn(createCSSTagTemplate(cssStyles[0]))
 }
 
-async function createStaticGetStyle(cssStyles: string[]) {
-  const styles = await createReturnStatement(cssStyles)
+function createStaticGetStyleSync(cssStyles: string[]) {
+  const styles = createReturnStatementSync(cssStyles)
   return ts.createGetAccessor(undefined, 
     [ ts.createModifier(ts.SyntaxKind.StaticKeyword) ], 
     ts.createIdentifier('styles'), 
@@ -103,10 +83,12 @@ async function createStaticGetStyle(cssStyles: string[]) {
   )
 }
 
-async function addOrUpdateStaticGetStyle(cssStyles: string[], statements: ts.Statement[]) {
-  return Promise.all(statements.map(async statement => {
+function addOrUpdateStaticGetStyleSync(cssStyles: string[], 
+  statements: ts.Statement[]
+) {
+  for (const statement of statements) {
     if (ts.isClassDeclaration(statement)) {   
-      const node = await createStaticGetStyle(cssStyles)
+      const node = createStaticGetStyleSync(cssStyles)
       const members = statement.members.filter(member => {
         return !(ts.isGetAccessor(member) 
             && member.name.hasOwnProperty('text')
@@ -114,44 +96,57 @@ async function addOrUpdateStaticGetStyle(cssStyles: string[], statements: ts.Sta
       })
       members.unshift(node)
       statement.members = ts.createNodeArray(members)
+      break
     }
-    return statement
-  }))
+  }
 }  
 
-export async function inlineCss(options: CompileStyleOptions) {
-  const { file, content, opts } = options
-  const outFile = file.replace('.ts', '.js')
+async function getStyles(tsFile: string, 
+  importStyles: ts.Statement[], 
+  opts?: StylePreprocessor
+) {
+  const { resolve, dirname, extname } = path
+  return Promise.all(importStyles.map(async (statement: ts.ImportDeclaration) => {
+    const text = getText(statement.moduleSpecifier as ts.Identifier)
+    const cssFullPath = resolve(dirname(tsFile), text.replace(/'/g, '').replace(/"/g, ''))
+    const content = await fs.promises.readFile(cssFullPath, 'utf-8')
+    if (extname(cssFullPath).includes('.scss')) {
+      const preprocessor = await css(opts).process(content, cssFullPath)
+      return preprocessor.css
+    }
+    return content
+  }))
+} 
 
-  const magicString = new MagicString(content)
-  const map = magicString.generateMap({ 
-    hires: false,
-    includeContent: true,
-    source: file,
-    file: `${outFile}.map`
-  })
-
-  const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.ES2015, false)
-
+export async function getImportStyles(file: string, 
+  content: string, 
+  opts?: StylePreprocessor
+) {
+  let styles: string[] = []
+  const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.ESNext, false)
   const importStatements = findAllImportDeclarations(sourceFile.statements)
   if (importStatements.length > 0) {
     const importStyles = findAllImportStyles(importStatements)
-    if (importStyles.length > 0) { 
-      const [ statements, cssStyles ] = await Promise.all([
-        removeAllImportStyles(importStyles, sourceFile.statements),
-        getStyles(file, importStyles, opts)
-      ])
-      updateImportCssSpecifer(statements)
-      const modifiedStatements = await addOrUpdateStaticGetStyle(cssStyles, statements) 
-      sourceFile.statements = ts.createNodeArray(modifiedStatements)
+    if (importStyles.length > 0) {
+      styles = await getStyles(file, importStyles, opts)
     }
   }
+  return styles
+}
 
-  const printer = ts.createPrinter({
-    newLine: ts.NewLineKind.LineFeed,
-  });
-
-  const code = printer.printFile(sourceFile)
-
-  return { code, map }
+export function transformStyles({ styles }) {
+  return (context: ts.TransformationContext) => {
+    const visitor = (node: any) => {
+      if (styles.length > 0 && Array.isArray(node.statements)) {
+        const importStatements = findAllImportDeclarations(node.statements)
+        const importStyles = findAllImportStyles(importStatements)
+        const statements = removeAllImportStylesSync(importStyles, node.statements)
+        updateImportCssSpecifer(statements)
+        addOrUpdateStaticGetStyleSync(styles, statements) 
+        node.statements = ts.createNodeArray(statements)
+      } 
+      return ts.visitEachChild(node, (child) => visitor(child), context)
+    }
+    return visitor
+  }
 }

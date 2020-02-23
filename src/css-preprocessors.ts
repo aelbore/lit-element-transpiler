@@ -47,7 +47,7 @@ async function buildSass(options?: CompileStyleOptions) {
 async function buildPostCss(options?: CompileStyleOptions) {
   const { file, content } = options
   const opts = options.opts as PostCssPreprocessor
-  const postcss = await import('postcss') 
+  const postcss = require('postcss')
   const { css, map } = await postcss([ ...(opts.plugins || []) ])
     .process(content, { 
       from: file,

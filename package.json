@@ -1,12 +1,13 @@
 {
   "name": "lit-element-transpiler",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "description": "LitElement code transpiler (import css and scss file and inline to your component also transpile decorators to native javascript)",
   "main": "lit-element-transpiler.js",
   "typings": "lit-element-transpiler.d.ts",
   "scripts": {
     "build": "aria-build -d --external typescript,postcss,node-sass",
     "test": "aria-mocha --dir specs --include-dir src --check-coverage",
+    "link.lib": "ts-node ./tools/link.ts",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "repository": {
@@ -37,16 +38,19 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.9",
+    "@types/express": "^4.17.2",
     "@types/mocha": "^7.0.1",
     "@types/mock-fs": "^4.10.0",
     "aria-build": "^0.1.0",
     "aria-fs": "^0.1.0",
     "aria-mocha": "^0.1.0",
+    "aria-mocha-headless": "^0.1.0",
     "autoprefixer": "^9.7.4",
     "chai": "^4.2.0",
     "coveralls": "^3.0.9",
     "cssnano": "^4.1.10",
     "cssnano-preset-default": "^4.0.7",
+    "express": "^4.17.1",
     "lit-element": "^2.2.1",
     "mock-fs": "git+https://github.com/tschaub/mock-fs.git",
     "node-sass": "^4.13.1",

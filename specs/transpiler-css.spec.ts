@@ -5,8 +5,7 @@ import { expect } from 'aria-mocha'
 
 import { getText } from '../src/utils'
 import { getImportDeclarations, getClassDeclarations, getGetAccesors } from './ts-helpers'
-
-import { inlineCss } from '../src/transpiler-css'
+import { transform } from '../src/transpiler'
 
 describe('transpiler-css', () => {
   let sourceFile: ts.SourceFile
@@ -27,7 +26,7 @@ describe('transpiler-css', () => {
       `
     })
 
-    const result = await inlineCss({ file: './src/hello-world.ts', content })
+    const result = await transform('./src/hello-world.ts', content)
     sourceFile = ts.createSourceFile('./src/hello-world.js', 
       result.code,
       ts.ScriptTarget.ES2015,
@@ -69,7 +68,7 @@ describe('transpiler-css', () => {
   })
 
   it('should not update existing moduleSpecifer [lit-element] with css importClause', async () => {
-    const expectedElements = [ 'LitElement', 'html', 'css' ]
+    const expectedElements = [ 'LitElement', 'css' ]
     
     const imports = getImportDeclarations(sourceFile, { moduleSpecifer: 'lit-element' })
     expect(imports.length).equal(1)
@@ -77,7 +76,7 @@ describe('transpiler-css', () => {
     const litElementImport = imports.pop()
     const elements = (litElementImport.importClause.namedBindings as ts.NamedImports).elements
 
-    expect(elements.length).equal(3)
+    expect(elements.length).equal(2)
     await Promise.all(elements.map(element => {
       const text = getText(element.name)
       expect(expectedElements.includes(text))
@@ -85,7 +84,7 @@ describe('transpiler-css', () => {
   })
 
   it('should update existing moduleSpecifer [lit-element] with css importClause', async () => {
-    const expectedElements = [ 'LitElement', 'html', 'css' ]
+    const expectedElements = [ 'LitElement', 'css' ]
 
     const imports = getImportDeclarations(sourceFile, { moduleSpecifer: 'lit-element' })
     expect(imports.length).equal(1)
@@ -93,7 +92,7 @@ describe('transpiler-css', () => {
     const litElementImport = imports.pop()
     const elements = (litElementImport.importClause.namedBindings as ts.NamedImports).elements
 
-    expect(elements.length).equal(3)
+    expect(elements.length).equal(2)
     await Promise.all(elements.map(element => {
       const text = getText(element.name)
       expect(expectedElements.includes(text))

@@ -4,6 +4,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowJs": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "moduleResolution": "node"
   }
 }
