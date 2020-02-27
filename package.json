@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/aelbore/lit-element-transpiler#readme",
   "peerDependencies": {
-    "typescript": ">= ^3.7.0 < ^3.7.4"
+    "typescript": ">= ^3.7.0 < ^3.8.2"
   },
   "dependencies": {
     "magic-string": "^0.25.6"
@@ -42,10 +42,10 @@
     "@types/express": "^4.17.2",
     "@types/mocha": "^7.0.1",
     "@types/mock-fs": "^4.10.0",
-    "aria-build": "^0.1.0",
-    "aria-fs": "^0.1.0",
-    "aria-mocha": "^0.1.0",
-    "aria-mocha-headless": "^0.1.0",
+    "aria-build": "^0.2.0",
+    "aria-fs": "^0.2.0",
+    "aria-mocha": "^0.2.0",
+    "aria-mocha-headless": "^0.2.0",
     "autoprefixer": "^9.7.4",
     "chai": "^4.2.0",
     "copy-webpack-plugin": "^5.1.1",
@@ -54,13 +54,13 @@
     "cssnano-preset-default": "^4.0.7",
     "express": "^4.17.1",
     "lit-element": "^2.2.1",
-    "mock-fs": "git+https://github.com/tschaub/mock-fs.git",
+    "mock-fs": "^4.11.0",
     "node-sass": "^4.13.1",
     "postcss": "^7.0.27",
     "postcss-nested": "^4.2.1",
     "postcss-simple-vars": "^5.0.2",
     "terser-webpack-plugin": "^2.3.5",
-    "typescript": "^3.7.4",
+    "typescript": "^3.8.2",
     "webpack": "^4.41.6",
     "webpack-cli": "^3.3.11"
   }
