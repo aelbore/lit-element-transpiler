@@ -14,9 +14,6 @@ install:
 script:
   - yarn test
   - yarn build && yarn link.lib
-  - npm --prefix ./packages/rollup-plugin-inline-lit-element run build
-  - npm --prefix ./packages/rollup-plugin-inline-lit-element run link.loader
-  - npm --prefix ./packages/rollup-plugin-inline-lit-element run build.counter
-  - npm --prefix ./packages/rollup-plugin-inline-lit-element run build.counter.decorators
+  - sh ./tools/post-build.sh
 after_success:
   - yarn coveralls
