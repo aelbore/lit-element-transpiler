@@ -1,7 +1,7 @@
-import { symlinkDir } from 'aria-build'
+import { symlinkDir, exec } from 'aria-build'
 
 (async function() {
-
+  await exec('yarn build')
   await Promise.all([
     symlinkDir('./dist',  './node_modules/lit-element-transpiler'),
     symlinkDir('./node_modules', 
@@ -11,5 +11,4 @@ import { symlinkDir } from 'aria-build'
       './packages/inline-lit-element-loader/node_modules'
     )
   ])
-
 })()
