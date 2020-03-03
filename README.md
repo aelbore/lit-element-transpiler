@@ -18,3 +18,56 @@ Installation
   ```
     npm install --save-dev lit-element-transpiler
   ```
+
+Usage
+------------
+* Code
+  ``` typescript
+    import * as mockfs from 'mock-fs'
+    import * as fs from 'fs'
+
+    import { transform } from 'lit-element-transpiler'
+
+    mockfs({
+      './src/hello-world.ts': `
+        import { LitElement, html, customElement, property } from 'lit-element'
+        import './hello-world.css'
+
+        @customElement('hello-world')
+        class HelloWorld extends LitElement { 
+          
+          @property() message
+
+        } 
+      `
+      './src/hello-world.css':`
+        h1 {
+          color: red
+        }
+      `
+    })
+
+    const content = await fs.promises.readFile('./src/hello-world.ts', 'utf-8')
+    const { code, map } = await transform('./src/hello-world.ts', content)
+  ```
+  
+* Output
+  ```typescript
+    import { LitElement, css } from 'lit-element'
+
+    class HelloWorld extends LitElement { 
+      static get properties() {
+        return {
+          message: { type: String }
+        }
+      }
+
+      static get styles() {
+        return css `
+          h1 { color: red }
+        `
+      }
+    } 
+
+    customElements.define('hello-world', HelloWorld)
+  ```
